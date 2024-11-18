@@ -17,10 +17,41 @@ print(schulen_tuples)
 schulen_dict = {int(s.split()[0]): ' '.join(s.split()[2:]) for s in schulen_liste}
 print(schulen_dict)
 
+import requests
+
+url = "https://www.bildungsportal-a3.de/wp-admin/admin-ajax.php"
+headers = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:132.0) Gecko/20100101 Firefox/132.0",
+    "Accept": "*/*",
+    "Content-Type": "multipart/form-data; boundary=---------------------------11876562914125794701181619007"
+}
+
+payload = (
+    '-----------------------------11876562914125794701181619007\r\n'
+    'Content-Disposition: form-data; name="action"\r\n\r\n'
+    'mmp_map_markers\r\n'
+    '-----------------------------11876562914125794701181619007\r\n'
+    'Content-Disposition: form-data; name="type"\r\n\r\n'
+    'map\r\n'
+    '-----------------------------11876562914125794701181619007\r\n'
+    'Content-Disposition: form-data; name="id"\r\n\r\n'
+    '34,7,8,9,10,11,12,13,15,16,17,18,19,20,21,22,25,26,27,28,29,31,32\r\n'
+    '-----------------------------11876562914125794701181619007\r\n'
+    'Content-Disposition: form-data; name="custom"\r\n\r\n'
+    'undefined\r\n'
+    '-----------------------------11876562914125794701181619007\r\n'
+    'Content-Disposition: form-data; name="lang"\r\n\r\n'
+    '\r\n'
+    '-----------------------------11876562914125794701181619007--\r\n'
+)
+
+response = requests.post(url, headers=headers, data=payload)
+data = response.json()
+
 
 # Datei einlesen
-with open('schulen-augsburg.json', 'r', encoding='utf-8') as file:
-    data = json.load(file)
+#with open('schulen-augsburg.json', 'r', encoding='utf-8') as file:
+#    data = json.load(file)
 
 # Nach maps Wert filtern 
 filtered_features = [
