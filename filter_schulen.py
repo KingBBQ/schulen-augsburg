@@ -1,5 +1,6 @@
 import json
 import csv
+from geopy.geocoders import Nominatim  # Neue Bibliothek importieren
 
 schulen_liste = [
     "15 Schulen: Grundschulen",
@@ -59,27 +60,65 @@ filtered_features = [
     if any(map_id in feature['properties']['maps'] for map_id in ['15', '16', '17', '18', '19', '21'])
 ]
 
+geolocator = Nominatim(user_agent="schulen-augsburg")
+# geolocator = Nominatim(user_agent="myapp")
+        
+
 # Ergebnisse ausgeben
 for feature in filtered_features:
     props = feature['properties']
+    location = geolocator.geocode(props['address'], addressdetails=True)
+    print(location)
+    if location and 'address' in location.raw:
+        address = location.raw['address']
+        name = address.get('house_number', '')
+        strasse = address.get('road', '')
+        plz = address.get('postcode', '')
+        ort = address.get('city', address.get('town', address.get('village', '')))
+    else:
+        name = ''
+        strasse = props['address']
+        plz = ''
+        ort = ''
     print(f"ID: {props['id']}")
     print(f"Name: {props['name']}")
     print(f"Maps: {props['maps']}")
     print(f"Adresse: {props['address']}")
+    print(f"Name: {name}")
+    print(f"Straße: {strasse}")
+    print(f"PLZ: {plz}")
+    print(f"Ort: {ort}")
     print(f"Erstellt am: {props['created_on_local_date']}")
     print("-" * 40)
+
 # CSV-Datei speichern
 with open('filtered_schulen.csv', 'w', newline='', encoding='utf-8') as csvfile:
-    fieldnames = ['ID', 'Name', 'Maps', 'Adresse', 'Erstellt am']
+    fieldnames = ['ID', 'Name', 'Maps', 'Adresse', 'Name', 'Straße', 'PLZ', 'Ort', 'Erstellt am']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
     writer.writeheader()
     for feature in filtered_features:
         props = feature['properties']
+        location = geolocator.geocode(props['address'], addressdetails=True)
+        if location:
+            address = location.raw['address']
+            name = address.get('house_number', '')
+            strasse = address.get('road', '')
+            plz = address.get('postcode', '')
+            ort = address.get('city', address.get('town', address.get('village', '')))
+        else:
+            name = ''
+            strasse = props['address']
+            plz = ''
+            ort = ''
         writer.writerow({
             'ID': schulen_dict.get(int(props['id']), props['id']),
             'Name': props['name'],
             'Maps': ', '.join([schulen_dict.get(int(map_id), map_id) for map_id in props['maps']]),
             'Adresse': props['address'],
+            'Name': name,
+            'Straße': strasse,
+            'PLZ': plz,
+            'Ort': ort,
             'Erstellt am': props['created_on_local_date']
         })
